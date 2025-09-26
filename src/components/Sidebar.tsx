@@ -41,7 +41,6 @@ export const Sidebar: React.FC<SidebarProps> = ({ className }) => {
     { title: "Profile", href: "/candidate/profile", icon: User },
     { title: "Documents", href: "/candidate/documents", icon: Upload },
     { title: "Quiz", href: "/candidate/quiz", icon: Award },
-    { title: "Practice", href: "/candidate/practice", icon: Award },
   ];
 
   const welderNavItems = [
@@ -49,7 +48,6 @@ export const Sidebar: React.FC<SidebarProps> = ({ className }) => {
     { title: "Profile", href: "/welder/profile", icon: User },
     { title: "Documents", href: "/welder/documents", icon: Upload },
     { title: "Quiz", href: "/welder/quiz", icon: Award },
-    { title: "Practice", href: "/welder/practice", icon: Award },
   ];
 
   const navItems = user?.role === "admin" ? adminNavItems : 
@@ -76,7 +74,10 @@ export const Sidebar: React.FC<SidebarProps> = ({ className }) => {
             </div>
           </div>
         )}
-        {/* <Button
+        {collapsed && (
+          <Truck className="h-8 w-8 text-brand-600" />
+        )}
+        <Button
           variant="ghost"
           size="sm"
           onClick={() => setCollapsed(!collapsed)}
@@ -87,7 +88,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ className }) => {
           ) : (
             <ChevronLeft className="h-4 w-4" />
           )}
-        </Button> */}
+        </Button>
       </div>
 
       {/* User Info */}

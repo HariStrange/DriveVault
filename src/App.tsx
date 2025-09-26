@@ -10,12 +10,19 @@ import { Toaster } from "sonner";
 import { LandingPage } from "./pages/LandingPage";
 import { AdminLogin } from "./pages/AdminLogin";
 import { CandidateAuth } from "./pages/CandidateAuth";
+import { WelderAuth } from "./pages/WelderAuth";
 import { CandidateDashboard } from "./pages/candidate/Dashboard";
 import { ProfileSetup } from "./pages/candidate/ProfileSetup";
 import { Quiz } from "./pages/candidate/Quiz";
 import { Documents } from "./pages/candidate/Documents";
+import { WelderDashboard } from "./pages/welder/Dashboard";
+import { WelderProfileSetup } from "./pages/welder/ProfileSetup";
+import { WelderQuiz } from "./pages/welder/Quiz";
+import { WelderDocuments } from "./pages/welder/Documents";
 import { AdminDashboard } from "./pages/admin/Dashboard";
 import { Jobs } from "./pages/admin/Jobs";
+import { DocumentsManagement } from "./pages/admin/DocumentManagement";
+import { QuizManagement } from "./pages/admin/Quizzmanagement";
 
 import "./App.css";
 
@@ -29,6 +36,7 @@ function App() {
             <Route path="/" element={<LandingPage />} />
             <Route path="/admin/login" element={<AdminLogin />} />
             <Route path="/candidate/auth" element={<CandidateAuth />} />
+            <Route path="/welder/auth" element={<WelderAuth />} />
 
             {/* Protected Candidate Routes */}
             <Route
@@ -64,6 +72,40 @@ function App() {
               }
             />
 
+            {/* Protected Welder Routes */}
+            <Route
+              path="/welder/dashboard"
+              element={
+                <ProtectedRoute requiredRole="welder">
+                  <WelderDashboard />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/welder/profile"
+              element={
+                <ProtectedRoute requiredRole="welder">
+                  <WelderProfileSetup />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/welder/quiz"
+              element={
+                <ProtectedRoute requiredRole="welder">
+                  <WelderQuiz />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/welder/documents"
+              element={
+                <ProtectedRoute requiredRole="welder">
+                  <WelderDocuments />
+                </ProtectedRoute>
+              }
+            />
+
             {/* Protected Admin Routes */}
             <Route
               path="/admin/dashboard"
@@ -85,7 +127,7 @@ function App() {
               path="/admin/candidates"
               element={
                 <ProtectedRoute requiredRole="admin">
-                  <AdminDashboard />
+                  <DocumentsManagement />
                 </ProtectedRoute>
               }
             />
@@ -93,7 +135,7 @@ function App() {
               path="/admin/quizzes"
               element={
                 <ProtectedRoute requiredRole="admin">
-                  <AdminDashboard />
+                  <QuizManagement />
                 </ProtectedRoute>
               }
             />
@@ -101,7 +143,7 @@ function App() {
               path="/admin/documents"
               element={
                 <ProtectedRoute requiredRole="admin">
-                  <AdminDashboard />
+                  <DocumentsManagement />
                 </ProtectedRoute>
               }
             />

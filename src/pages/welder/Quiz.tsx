@@ -10,15 +10,78 @@ import { Badge } from '@/components/ui/badge';
 import { Award, Clock, CheckCircle, XCircle, ArrowLeft, AlertCircle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { storageUtils } from '@/utils/storage';
-import { driverQuizQuestions } from '@/data/quizQuestions';
 import { toast } from 'sonner';
 import gsap from 'gsap';
 
-export const Quiz: React.FC = () => {
+// Sample welder quiz questions
+const welderQuizQuestions = [
+  {
+    id: '1',
+    question: 'What is the most common welding process used in structural steel fabrication?',
+    options: ['TIG Welding', 'MIG Welding', 'Stick Welding', 'Flux-Cored Welding'],
+    correctAnswer: 2
+  },
+  {
+    id: '2',
+    question: 'What does AWS stand for in welding standards?',
+    options: ['American Welding Society', 'Advanced Welding Systems', 'Automated Welding Standards', 'American Welding Standards'],
+    correctAnswer: 0
+  },
+  {
+    id: '3',
+    question: 'Which gas is commonly used for TIG welding of stainless steel?',
+    options: ['Carbon Dioxide', 'Oxygen', 'Argon', 'Nitrogen'],
+    correctAnswer: 2
+  },
+  {
+    id: '4',
+    question: 'What is the ideal travel speed for most welding processes?',
+    options: ['As fast as possible', 'Slow and steady', 'Depends on material thickness', 'Always the same speed'],
+    correctAnswer: 2
+  },
+  {
+    id: '5',
+    question: 'Which welding defect is caused by insufficient penetration?',
+    options: ['Porosity', 'Lack of fusion', 'Undercut', 'Spatter'],
+    correctAnswer: 1
+  },
+  {
+    id: '6',
+    question: 'What is the primary safety concern when welding in confined spaces?',
+    options: ['Fire hazard', 'Ventilation and fume extraction', 'Equipment malfunction', 'Material contamination'],
+    correctAnswer: 1
+  },
+  {
+    id: '7',
+    question: 'Which electrode classification indicates a low hydrogen electrode?',
+    options: ['E6010', 'E6011', 'E7018', 'E6013'],
+    correctAnswer: 2
+  },
+  {
+    id: '8',
+    question: 'What is the recommended preheat temperature for welding thick carbon steel?',
+    options: ['No preheat needed', '150-200°F', '300-400°F', '500-600°F'],
+    correctAnswer: 1
+  },
+  {
+    id: '9',
+    question: 'Which welding position is considered the most difficult?',
+    options: ['Flat', 'Horizontal', 'Vertical', 'Overhead'],
+    correctAnswer: 3
+  },
+  {
+    id: '10',
+    question: 'What does the term "root pass" refer to in welding?',
+    options: ['The final welding pass', 'The first welding pass', 'A backing strip', 'A welding technique'],
+    correctAnswer: 1
+  }
+];
+
+export const WelderQuiz: React.FC = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [currentQuestion, setCurrentQuestion] = useState(0);
-  const [answers, setAnswers] = useState<(number | null)[]>(new Array(driverQuizQuestions.length).fill(null));
+  const [answers, setAnswers] = useState<(number | null)[]>(new Array(welderQuizQuestions.length).fill(null));
   const [selectedAnswer, setSelectedAnswer] = useState<number | null>(null);
   const [timeLeft, setTimeLeft] = useState(600); // 10 minutes
   const [quizStarted, setQuizStarted] = useState(false);
@@ -30,10 +93,10 @@ export const Quiz: React.FC = () => {
   useEffect(() => {
     if (!user) return;
 
-    const profile = storageUtils.getProfile(user.id);
+    const profile = storageUtils.getWelderProfile(user.id);
     if (!profile || !profile.personal.firstName || !profile.passport.number) {
       toast.error('Please complete your profile first');
-      navigate('/candidate/profile');
+      navigate('/welder/profile');
       return;
     }
 
@@ -61,7 +124,7 @@ export const Quiz: React.FC = () => {
   const startQuiz = () => {
     setQuizStarted(true);
     setCurrentQuestion(0);
-    setAnswers(new Array(driverQuizQuestions.length).fill(null));
+    setAnswers(new Array(welderQuizQuestions.length).fill(null));
     setSelectedAnswer(null);
     setTimeLeft(600);
     setQuizCompleted(false);
@@ -85,7 +148,7 @@ export const Quiz: React.FC = () => {
       return;
     }
 
-    if (currentQuestion < driverQuizQuestions.length - 1) {
+    if (currentQuestion < welderQuizQuestions.length - 1) {
       setCurrentQuestion(currentQuestion + 1);
       
       // Animate question change
@@ -115,12 +178,12 @@ export const Quiz: React.FC = () => {
     
     // Calculate score based on answers
     answers.forEach((answer, index) => {
-      if (answer !== null && answer === driverQuizQuestions[index].correctAnswer) {
+      if (answer !== null && answer === welderQuizQuestions[index].correctAnswer) {
         correctCount++;
       }
     });
 
-    const finalScore = Math.round((correctCount / driverQuizQuestions.length) * 100);
+    const finalScore = Math.round((correctCount / welderQuizQuestions.length) * 100);
     setScore(finalScore);
     setCorrectAnswers(correctCount);
     setQuizCompleted(true);
@@ -128,14 +191,14 @@ export const Quiz: React.FC = () => {
 
     // Save quiz result
     if (user) {
-      const profile = storageUtils.getProfile(user.id);
+      const profile = storageUtils.getWelderProfile(user.id);
       if (profile) {
         const updatedProfile = {
           ...profile,
           quizScore: finalScore,
           status: finalScore >= 70 ? 'documents_pending' as const : 'quiz_pending' as const,
         };
-        storageUtils.saveProfile(updatedProfile);
+        storageUtils.saveWelderProfile(updatedProfile);
       }
     }
 
@@ -155,16 +218,16 @@ export const Quiz: React.FC = () => {
 
   if (!quizStarted) {
     return (
-      <Layout title="Driving Knowledge Quiz">
+      <Layout title="Welding Knowledge Quiz">
         <div className="max-w-2xl mx-auto">
           <Card className="quiz-card shadow-large">
             <CardHeader className="text-center pb-8">
               <div className="mx-auto mb-6 h-20 w-20 rounded-full bg-brand-100 flex items-center justify-center">
                 <Award className="h-10 w-10 text-brand-600" />
               </div>
-              <CardTitle className="text-3xl font-bold text-gray-900">European Driving Quiz</CardTitle>
+              <CardTitle className="text-3xl font-bold text-gray-900">European Welding Quiz</CardTitle>
               <CardDescription className="text-lg text-gray-600">
-                Test your knowledge of European driving regulations and safety
+                Test your knowledge of welding techniques and safety standards
               </CardDescription>
             </CardHeader>
             
@@ -177,7 +240,7 @@ export const Quiz: React.FC = () => {
                 <div className="grid md:grid-cols-2 gap-4 text-sm text-gray-700">
                   <div className="flex items-center">
                     <div className="h-2 w-2 bg-brand-600 rounded-full mr-3"></div>
-                    10 questions about European driving
+                    10 questions about welding
                   </div>
                   <div className="flex items-center">
                     <div className="h-2 w-2 bg-brand-600 rounded-full mr-3"></div>
@@ -199,7 +262,7 @@ export const Quiz: React.FC = () => {
                   Start Quiz
                 </Button>
                 
-                <Button variant="ghost" onClick={() => navigate('/candidate/dashboard')} className="text-gray-600">
+                <Button variant="ghost" onClick={() => navigate('/welder/dashboard')} className="text-gray-600">
                   <ArrowLeft className="h-4 w-4 mr-2" />
                   Back to Dashboard
                 </Button>
@@ -230,7 +293,7 @@ export const Quiz: React.FC = () => {
                 {score >= 70 ? 'Congratulations!' : 'Quiz Complete'}
               </CardTitle>
               <CardDescription className="text-lg text-gray-600">
-                {score >= 70 ? 'You passed the driving knowledge quiz!' : 'You can retake the quiz to improve your score'}
+                {score >= 70 ? 'You passed the welding knowledge quiz!' : 'You can retake the quiz to improve your score'}
               </CardDescription>
             </CardHeader>
             
@@ -255,7 +318,7 @@ export const Quiz: React.FC = () => {
                     <div className="text-sm text-gray-600">Correct Answers</div>
                   </div>
                   <div className="text-center">
-                    <div className="text-2xl font-bold text-gray-900">{driverQuizQuestions.length - correctAnswers}</div>
+                    <div className="text-2xl font-bold text-gray-900">{welderQuizQuestions.length - correctAnswers}</div>
                     <div className="text-sm text-gray-600">Incorrect Answers</div>
                   </div>
                 </div>
@@ -276,7 +339,7 @@ export const Quiz: React.FC = () => {
                 
                 <Button 
                   variant={score >= 70 ? 'default' : 'outline'}
-                  onClick={() => navigate('/candidate/dashboard')}
+                  onClick={() => navigate('/welder/dashboard')}
                   className={`flex-1 ${score >= 70 ? 'bg-success-600 hover:bg-success-700' : ''}`}
                 >
                   {score >= 70 ? 'Continue to Documents' : 'Back to Dashboard'}
@@ -289,11 +352,11 @@ export const Quiz: React.FC = () => {
     );
   }
 
-  const progress = ((currentQuestion + 1) / driverQuizQuestions.length) * 100;
-  const question = driverQuizQuestions[currentQuestion];
+  const progress = ((currentQuestion + 1) / welderQuizQuestions.length) * 100;
+  const question = welderQuizQuestions[currentQuestion];
 
   return (
-    <Layout title="Driving Knowledge Quiz">
+    <Layout title="Welding Knowledge Quiz">
       <div className="max-w-3xl mx-auto">
         <Card className="quiz-card shadow-large">
           <CardHeader className="pb-6">
@@ -308,7 +371,7 @@ export const Quiz: React.FC = () => {
                 </div>
               </div>
               <Badge variant="outline" className="text-lg px-4 py-2">
-                {currentQuestion + 1} / {driverQuizQuestions.length}
+                {currentQuestion + 1} / {welderQuizQuestions.length}
               </Badge>
             </div>
             <Progress value={progress} className="h-2" />
@@ -374,7 +437,7 @@ export const Quiz: React.FC = () => {
                   disabled={selectedAnswer === null}
                   className="bg-brand-600 hover:bg-brand-700"
                 >
-                  {currentQuestion === driverQuizQuestions.length - 1 ? 'Finish Quiz' : 'Next Question'}
+                  {currentQuestion === welderQuizQuestions.length - 1 ? 'Finish Quiz' : 'Next Question'}
                 </Button>
               </div>
             </div>

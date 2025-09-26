@@ -18,15 +18,17 @@ import {
   UserCheck,
 } from "lucide-react";
 import { storageUtils } from "@/utils/storage";
-import { CandidateProfile, Job } from "@/types";
+import { CandidateProfile, WelderProfile, Job } from "@/types";
 import { Link } from "react-router-dom";
 import gsap from "gsap";
 
 export const AdminDashboard: React.FC = () => {
-  const [profiles, setProfiles] = useState<CandidateProfile[]>([]);
+  const [candidateProfiles, setCandidateProfiles] = useState<CandidateProfile[]>([]);
+  const [welderProfiles, setWelderProfiles] = useState<WelderProfile[]>([]);
   const [jobs, setJobs] = useState<Job[]>([]);
   const [stats, setStats] = useState({
     totalCandidates: 0,
+    totalWelders: 0,
     pendingReview: 0,
     approved: 0,
     activeJobs: 0,
@@ -46,15 +48,20 @@ export const AdminDashboard: React.FC = () => {
   }, []);
 
   const loadData = () => {
-    const allProfiles = storageUtils.getAllProfiles();
+    const allCandidateProfiles = storageUtils.getAllProfiles();
+    const allWelderProfiles = storageUtils.getAllWelderProfiles();
     const allJobs = storageUtils.getAllJobs();
 
-    setProfiles(allProfiles);
+    setCandidateProfiles(allCandidateProfiles);
+    setWelderProfiles(allWelderProfiles);
     setJobs(allJobs);
+
+    const allProfiles = [...allCandidateProfiles, ...allWelderProfiles];
 
     // Calculate stats
     setStats({
-      totalCandidates: allProfiles.length,
+      totalCandidates: allCandidateProfiles.length,
+      totalWelders: allWelderProfiles.length,
       pendingReview: allProfiles.filter((p) => p.status === "under_review")
         .length,
       approved: allProfiles.filter(
@@ -110,13 +117,6 @@ export const AdminDashboard: React.FC = () => {
     </Card>
   );
 
-  const recentCandidates = profiles
-    .sort(
-      (a, b) =>
-        new Date(b.completedAt || "").getTime() -
-        new Date(a.completedAt || "").getTime()
-    )
-    .slice(0, 5);
 
   const recentJobs = jobs
     .sort(
@@ -157,10 +157,19 @@ export const AdminDashboard: React.FC = () => {
           <StatCard
             title="Total Candidates"
             value={stats.totalCandidates}
-            description="Registered drivers"
+            description="Registered candidates"
             icon={Users}
             color="bg-brand-600"
             trend="+12% from last month"
+            link="/admin/candidates"
+          />
+          <StatCard
+            title="Total Welders"
+            value={stats.totalWelders}
+            description="Registered welders"
+            icon={Users}
+            color="bg-orange-600"
+            trend="+5% from last month"
             link="/admin/candidates"
           />
           <StatCard
@@ -206,28 +215,29 @@ export const AdminDashboard: React.FC = () => {
           />
         </div>
 
-        {/* Recent Activity */}
+        {/* Recent Activity - Updated to show both candidates and welders */}
         <div className="grid lg:grid-cols-2 gap-8">
-          {/* Recent Candidates */}
+          {/* Recent Applications */}
           <Card className="dashboard-card shadow-soft">
             <CardHeader>
               <CardTitle className="flex items-center">
                 <UserCheck className="h-5 w-5 mr-2 text-brand-600" />
-                Recent Candidates
+                Recent Applications
               </CardTitle>
               <CardDescription>
-                Latest candidate applications and updates
+                Latest applications from candidates and welders
               </CardDescription>
             </CardHeader>
             <CardContent>
-              {recentCandidates.length === 0 ? (
+              {candidateProfiles.length === 0 && welderProfiles.length === 0 ? (
                 <div className="text-center py-8">
                   <Users className="h-12 w-12 mx-auto text-primary-foreground mb-4" />
-                  <p className="text-primary-foreground/80">No candidates yet</p>
+                  <p className="text-primary-foreground/80">No applications yet</p>
                 </div>
               ) : (
                 <div className="space-y-4">
-                  {recentCandidates.map((candidate) => (
+                  {/* Show recent candidates */}
+                  {candidateProfiles.slice(0, 3).map((candidate) => (
                     <div
                       key={candidate.userId}
                       className="flex items-center justify-between p-3 bg-primary rounded-lg"
@@ -240,6 +250,7 @@ export const AdminDashboard: React.FC = () => {
                           <p className="font-medium text-primary-foreground">
                             {candidate.personal.firstName}{" "}
                             {candidate.personal.lastName}
+                            <span className="text-xs ml-2 bg-blue-500 text-white px-2 py-1 rounded">Driver</span>
                           </p>
                           <p className="text-sm text-primary-foreground/80">
                             {candidate.personal.email}
@@ -262,6 +273,48 @@ export const AdminDashboard: React.FC = () => {
                         {candidate.quizScore && (
                           <p className="text-xs text-gray-500 mt-1">
                             Quiz: {candidate.quizScore}%
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                  {/* Show recent welders */}
+                  {welderProfiles.slice(0, 2).map((welder) => (
+                    <div
+                      key={welder.userId}
+                      className="flex items-center justify-between p-3 bg-primary rounded-lg"
+                    >
+                      <div className="flex items-center space-x-3">
+                        <div className="h-10 w-10 bg-orange-100 rounded-full flex items-center justify-center">
+                          <Users className="h-5 w-5 text-orange-600" />
+                        </div>
+                        <div>
+                          <p className="font-medium text-primary-foreground">
+                            {welder.personal.firstName}{" "}
+                            {welder.personal.lastName}
+                            <span className="text-xs ml-2 bg-orange-500 text-white px-2 py-1 rounded">Welder</span>
+                          </p>
+                          <p className="text-sm text-primary-foreground/80">
+                            {welder.personal.email}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <div
+                          className={`inline-flex px-2 py-1 rounded-full text-xs font-medium ${
+                            welder.status === "approved" ||
+                            welder.status === "employee"
+                              ? "bg-success-100 text-success-800"
+                              : welder.status === "under_review"
+                              ? "bg-warning-100 text-warning-800"
+                              : "bg-gray-100 text-gray-800"
+                          }`}
+                        >
+                          {welder.status.replace("_", " ")}
+                        </div>
+                        {welder.quizScore && (
+                          <p className="text-xs text-gray-500 mt-1">
+                            Quiz: {welder.quizScore}%
                           </p>
                         )}
                       </div>

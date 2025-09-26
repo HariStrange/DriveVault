@@ -41,7 +41,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   }, []);
 
-  const login = async (email: string, password: string, role: 'candidate' | 'admin'): Promise<boolean> => {
+  const login = async (email: string, password: string, role: 'candidate' | 'welder' | 'admin'): Promise<boolean> => {
     try {
       if (role === 'admin') {
         // Static admin credentials
@@ -78,7 +78,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           return true;
         }
         return false;
-      } else if (role === 'welder') {
+      }
+      
+      if (role === 'welder') {
         // Welder login
         const users: User[] = JSON.parse(localStorage.getItem('users') || '[]');
         const foundUser = users.find(u => 
@@ -96,6 +98,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
         return false;
       }
+      
+      return false;
     } catch (error) {
       console.error('Login error:', error);
       return false;
