@@ -32,7 +32,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ className }) => {
   const adminNavItems = [
     { title: "Dashboard", href: "/admin/dashboard", icon: LayoutDashboard },
     { title: "Jobs", href: "/admin/jobs", icon: Briefcase },
-    { title: "Quiz Management", href: "/admin/quiz", icon: Award },
+    { title: "Quiz Management", href: "/admin/quizzes", icon: Award },
     { title: "Documents", href: "/admin/documents", icon: Upload },
   ];
 
