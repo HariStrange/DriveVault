@@ -7,7 +7,7 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
-import { Award, Clock, CheckCircle, XCircle, ArrowLeft, AlertCircle } from 'lucide-react';
+import { Award, Clock, CircleCheck as CheckCircle, Circle as XCircle, ArrowLeft, CircleAlert as AlertCircle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { storageUtils } from '@/utils/storage';
 import { toast } from 'sonner';

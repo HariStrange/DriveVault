@@ -7,7 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Separator } from '@/components/ui/separator';
-import { Upload, FileText, CheckCircle, ArrowLeft, Video } from 'lucide-react';
+import { Upload, FileText, CircleCheck as CheckCircle, ArrowLeft, Video } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { storageUtils } from '@/utils/storage';
 import { WelderProfile } from '@/types';

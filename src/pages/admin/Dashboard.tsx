@@ -7,16 +7,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import {
-  Users,
-  Briefcase,
-  CheckCircle,
-  Clock,
-  TrendingUp,
-  Award,
-  FileText,
-  UserCheck,
-} from "lucide-react";
+import { Users, Briefcase, CircleCheck as CheckCircle, Clock, TrendingUp, Award, FileText, UserCheck } from "lucide-react";
 import { storageUtils } from "@/utils/storage";
 import { CandidateProfile, WelderProfile, Job } from "@/types";
 import { Link } from "react-router-dom";
