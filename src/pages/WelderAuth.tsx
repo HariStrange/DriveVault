@@ -49,8 +49,8 @@ export const WelderAuth: React.FC = () => {
     // Animate tab content directionally
     const fromX =
       prevTab.current === "login" && activeTab === "register" ? 80 : -80;
-    const toX =
-      prevTab.current === "login" && activeTab === "register" ? -80 : 80;
+    // const toX =
+    //   prevTab.current === "login" && activeTab === "register" ? -80 : 80;
     gsap.fromTo(
       ".tab-content",
       { x: fromX, opacity: 0 },

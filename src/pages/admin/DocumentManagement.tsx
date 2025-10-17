@@ -4,7 +4,6 @@ import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
-  CardDescription,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
@@ -16,7 +15,6 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
@@ -27,7 +25,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { FileText, CircleCheck as CheckCircle, Circle as XCircle, Clock, Users, Eye, User, Wrench } from "lucide-react";
+import { FileText, CircleCheck as CheckCircle, Circle as XCircle, Clock,User, Wrench } from "lucide-react";
 import { storageUtils } from "@/utils/storage";
 import { CandidateProfile, WelderProfile } from "@/types";
 import { toast } from "sonner";

@@ -7,7 +7,6 @@ import { Textarea } from "@/components/ui/textarea";
 import {
   Card,
   CardContent,
-  CardDescription,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
@@ -28,7 +27,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Plus, CreditCard as Edit, Trash2, Image as ImageIcon, Award, Users, Eye } from "lucide-react";
+import { Plus, CreditCard as Edit, Trash2, Image as ImageIcon, Award, Users} from "lucide-react";
 import { storageUtils } from "@/utils/storage";
 import { QuizQuestion } from "@/types";
 import { useAuth } from "@/contexts/AuthContext";
