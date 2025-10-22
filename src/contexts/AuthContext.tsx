@@ -1,21 +1,19 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
+import axios from "axios";
+import { toast } from "sonner";
+import Cookies from "js-cookie";
 import { User } from "@/types";
+
+const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
 
 interface AuthContextType {
   user: User | null;
-  login: (
-    email: string,
-    password: string,
-    role: "candidate" | "welder" | "admin"
-  ) => Promise<boolean>;
+  login: (email: string, password: string) => Promise<boolean>;
   register: (
     email: string,
+    name: string,
     password: string,
-    phone?: string
-  ) => Promise<boolean>;
-  registerWelder: (
-    email: string,
-    password: string,
+    role: "candidate" | "welder",
     phone?: string
   ) => Promise<boolean>;
   logout: () => void;
@@ -26,9 +24,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const useAuth = () => {
   const context = useContext(AuthContext);
-  if (context === undefined) {
-    throw new Error("useAuth must be used within an AuthProvider");
-  }
+  if (!context) throw new Error("useAuth must be used within an AuthProvider");
   return context;
 };
 
@@ -38,201 +34,109 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   const [user, setUser] = useState<User | null>(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
 
+  // ✅ Automatically restore session from cookie
   useEffect(() => {
-    const token = localStorage.getItem("auth_token");
-    const userData = localStorage.getItem("user_data");
+    const token = Cookies.get("auth_token");
+    const userData = Cookies.get("user_data");
 
     if (token && userData) {
       try {
         const parsedUser = JSON.parse(userData);
+        if (parsedUser.role === "driver") parsedUser.role = "candidate";
+
         setUser(parsedUser);
         setIsAuthenticated(true);
-      } catch (error) {
-        console.error("Error parsing user data:", error);
-        localStorage.removeItem("auth_token");
-        localStorage.removeItem("user_data");
+        axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+      } catch (err) {
+        console.error("Error parsing user_data cookie:", err);
+        Cookies.remove("auth_token");
+        Cookies.remove("user_data");
       }
     }
   }, []);
 
-  const login = async (
-    email: string,
-    password: string,
-    role: "candidate" | "welder" | "admin"
-  ): Promise<boolean> => {
+  // ✅ LOGIN
+  const login = async (email: string, password: string): Promise<boolean> => {
     try {
-      if (role === "admin") {
-        // Static admin credentials
-        if (email === "admin@sholas.io" && password === "admin123") {
-          const adminUser: User = {
-            id: "admin-1",
-            email: "admin@sholas.io",
-            password: "admin123",
-            role: "admin",
-            createdAt: new Date().toISOString(),
-          };
+      const response = await axios.post(`${API_BASE_URL}/api/auth/login`, {
+        email,
+        password,
+      });
 
-          setUser(adminUser);
-          setIsAuthenticated(true);
-          localStorage.setItem("auth_token", "admin-token-123");
-          localStorage.setItem("user_data", JSON.stringify(adminUser));
-          return true;
-        }
-        return false;
-      } else if (role === "candidate") {
-        // Static candidate/driver credentials (secondary option)
-        if (email === "antanijabaraj@gmail.com" && password === "Demo@2025") {
-          const candidateUser: User = {
-            id: "candidate-static",
-            email: "antanijabaraj@gmail.com",
-            password: "Demo@2025",
-            role: "candidate",
-            createdAt: new Date().toISOString(),
-          };
-
-          setUser(candidateUser);
-          setIsAuthenticated(true);
-          localStorage.setItem("auth_token", "candidate-static-token");
-          localStorage.setItem("user_data", JSON.stringify(candidateUser));
-          return true;
-        }
-
-        // Fallback to registered users
-        const users: User[] = JSON.parse(localStorage.getItem("users") || "[]");
-        const foundUser = users.find(
-          (u) =>
-            (u.email === email || u.phone === email) &&
-            u.password === password &&
-            u.role === "candidate"
-        );
-
-        if (foundUser) {
-          setUser(foundUser);
-          setIsAuthenticated(true);
-          localStorage.setItem("auth_token", `candidate-token-${foundUser.id}`);
-          localStorage.setItem("user_data", JSON.stringify(foundUser));
-          return true;
-        }
-        return false;
-      } else if (role === "welder") {
-        // Static welder credentials (secondary option)
-        if (email === "antanijabaraj@gmail.com" && password === "Demo@2025") {
-          const welderUser: User = {
-            id: "welder-static",
-            email: "antanijabaraj@gmail.com",
-            password: "Demo@2025",
-            role: "welder",
-            createdAt: new Date().toISOString(),
-          };
-
-          setUser(welderUser);
-          setIsAuthenticated(true);
-          localStorage.setItem("auth_token", "welder-static-token");
-          localStorage.setItem("user_data", JSON.stringify(welderUser));
-          return true;
-        }
-
-        // Fallback to registered users
-        const users: User[] = JSON.parse(localStorage.getItem("users") || "[]");
-        const foundUser = users.find(
-          (u) =>
-            (u.email === email || u.phone === email) &&
-            u.password === password &&
-            u.role === "welder"
-        );
-
-        if (foundUser) {
-          setUser(foundUser);
-          setIsAuthenticated(true);
-          localStorage.setItem("auth_token", `welder-token-${foundUser.id}`);
-          localStorage.setItem("user_data", JSON.stringify(foundUser));
-          return true;
-        }
+      const { token, user: backendUser } = response.data;
+      if (!token || !backendUser) {
+        toast.error("Invalid response from server.");
         return false;
       }
 
-      return false;
-    } catch (error) {
+      if (backendUser.role === "driver") backendUser.role = "candidate";
+
+      // Store in cookies for 7 days
+      Cookies.set("auth_token", token, { expires: 7, sameSite: "strict" });
+      Cookies.set("user_data", JSON.stringify(backendUser), {
+        expires: 7,
+        sameSite: "strict",
+      });
+
+      setUser(backendUser);
+      setIsAuthenticated(true);
+      axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+
+      toast.success(`Welcome back, ${backendUser.name || "user"}!`);
+      return true;
+    } catch (error: any) {
       console.error("Login error:", error);
+      if (error.response?.status === 403) {
+        toast.error("Please verify your email before logging in.");
+      } else if (error.response?.status === 401) {
+        toast.error("Invalid email or password.");
+      } else {
+        toast.error("Login failed. Please try again later.");
+      }
       return false;
     }
   };
 
+  // ✅ REGISTER
   const register = async (
     email: string,
+    name: string,
     password: string,
+    role: "candidate" | "welder",
     phone?: string
   ): Promise<boolean> => {
     try {
-      const users: User[] = JSON.parse(localStorage.getItem("users") || "[]");
+      const backendRole = role === "candidate" ? "driver" : "welder";
+      const formData = { email, name, password, phone, role: backendRole };
 
-      // Check if user already exists (including static ones, but statics aren't in localStorage users array)
-      const existingUser = users.find(
-        (u) => u.email === email || (phone && u.phone === phone)
+      const response = await axios.post(
+        `${API_BASE_URL}/api/auth/register`,
+        formData
       );
-      if (existingUser) {
-        return false;
-      }
 
-      const newUser: User = {
-        id: `candidate-${Date.now()}`,
-        email,
-        phone,
-        password,
-        role: "candidate",
-        createdAt: new Date().toISOString(),
-      };
-
-      users.push(newUser);
-      localStorage.setItem("users", JSON.stringify(users));
+      toast.success(
+        response.data.message ||
+          "Registration successful! Please check your email for the verification code."
+      );
 
       return true;
-    } catch (error) {
+    } catch (error: any) {
       console.error("Registration error:", error);
+      toast.error(
+        error.response?.data?.error || "Registration failed. Please try again."
+      );
       return false;
     }
   };
 
-  const registerWelder = async (
-    email: string,
-    password: string,
-    phone?: string
-  ): Promise<boolean> => {
-    try {
-      const users: User[] = JSON.parse(localStorage.getItem("users") || "[]");
-
-      // Check if user already exists (including static ones, but statics aren't in localStorage users array)
-      const existingUser = users.find(
-        (u) => u.email === email || (phone && u.phone === phone)
-      );
-      if (existingUser) {
-        return false;
-      }
-
-      const newUser: User = {
-        id: `welder-${Date.now()}`,
-        email,
-        phone,
-        password,
-        role: "welder",
-        createdAt: new Date().toISOString(),
-      };
-
-      users.push(newUser);
-      localStorage.setItem("users", JSON.stringify(users));
-
-      return true;
-    } catch (error) {
-      console.error("Registration error:", error);
-      return false;
-    }
-  };
-
+  // ✅ LOGOUT
   const logout = () => {
     setUser(null);
     setIsAuthenticated(false);
-    localStorage.removeItem("auth_token");
-    localStorage.removeItem("user_data");
+    Cookies.remove("auth_token");
+    Cookies.remove("user_data");
+    delete axios.defaults.headers.common["Authorization"];
+    toast.success("Logged out successfully.");
   };
 
   return (
@@ -241,7 +145,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         user,
         login,
         register,
-        registerWelder,
         logout,
         isAuthenticated,
       }}
