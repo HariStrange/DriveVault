@@ -1,4 +1,3 @@
-
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "./contexts/AuthContext";
 import { ThemeProvider } from "./contexts/ThemeContext";
@@ -9,7 +8,6 @@ import { Toaster } from "sonner";
 import { LandingPage } from "./pages/LandingPage";
 import { AdminLogin } from "./pages/AdminLogin";
 import { CandidateAuth } from "./pages/CandidateAuth";
-import { WelderAuth } from "./pages/WelderAuth";
 import { CandidateDashboard } from "./pages/candidate/Dashboard";
 import { ProfileSetup } from "./pages/candidate/ProfileSetup";
 import { Quiz } from "./pages/candidate/Quiz";
@@ -24,6 +22,7 @@ import { DocumentsManagement } from "./pages/admin/DocumentManagement";
 import { QuizManagement } from "./pages/admin/Quizzmanagement";
 
 import "./App.css";
+import { EmailVerification } from "./contexts/EmailVerification";
 
 function App() {
   return (
@@ -35,7 +34,7 @@ function App() {
             <Route path="/" element={<LandingPage />} />
             <Route path="/admin/login" element={<AdminLogin />} />
             <Route path="/candidate/auth" element={<CandidateAuth />} />
-            <Route path="/welder/auth" element={<WelderAuth />} />
+            <Route path="/api/auth/verify" element={<EmailVerification/>} />
 
             {/* Protected Candidate Routes */}
             <Route
